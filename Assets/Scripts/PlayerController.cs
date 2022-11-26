@@ -10,15 +10,19 @@ using UniRx;
 [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    private bool PointerDown = false;
-    private ReactiveProperty<bool> Splatted = new(false);
-    private ReactiveProperty<bool> Rising = new(false);
-    private ReactiveProperty<bool> Falling = new(false);
-    private ReactiveProperty<bool> Grounded = new(false);
     private bool NoJump = false;
+    private bool PointerDown = false;
+
+    private readonly ReactiveProperty<bool> Splatted = new(false);
+    private readonly ReactiveProperty<bool> Rising = new(false);
+    private readonly ReactiveProperty<bool> Falling = new(false);
+    private readonly ReactiveProperty<bool> Grounded = new(false);
     private static readonly ReactiveProperty<float> willpower = new(0);
+    private static readonly ReactiveProperty<Vector2> CurrentCheckpointPosition = new(Vector2.negativeInfinity);
+
     private Vector2 MousePosition = Vector2.zero;
     private Vector3 Direction = Vector3.zero;
+
     private Transform[] IndicatorCircles = new Transform[5];
     private Rigidbody2D rb;
     private Animator animator;
@@ -27,15 +31,17 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     private WaitForSeconds WakeupTime = new(1f);
 
-    [SerializeField] Transform CirclePrefab;
     [SerializeField] LayerMask GroundMask;
-    [SerializeField] Camera MainCamera;
+    [SerializeField] Transform CirclePrefab;
     [SerializeField] float JumpStrength;
     [SerializeField] float TurnThreshold;
     [SerializeField] float CircleMaxSize;
     [SerializeField] float CircleMinSize;
 
     private Vector3 Position { get => transform.position + new Vector3(Capsule.offset.x, Capsule.offset.y); }
+
+    private Vector2 CurrentCheckpoint { get => CurrentCheckpointPosition.Value; set => CurrentCheckpointPosition.Value = value; }
+    public static ReactiveProperty<Vector2> CheckpointSubscriber { get => CurrentCheckpointPosition; }
     public float Willpower { get => willpower.Value; set => willpower.Value = value; }
     public static ReactiveProperty<float> WillpowerSubscriber { get => willpower; }
 
@@ -60,6 +66,20 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         if (Grounded.Value && !NoJump)
             rb.AddForce(new Vector3(Direction.x * JumpStrength, Direction.y * JumpStrength * 1.5f), ForceMode2D.Impulse);
         else NoJump = false;
+    }
+
+    public void SetCheckpoint()
+    {
+        if (Grounded.Value && Willpower >= 10)
+        {
+            Willpower -= 10;
+            CurrentCheckpoint = transform.position;
+        }
+    }
+    public void GoToCheckpoint() 
+    { 
+        if (CurrentCheckpoint.x != float.NegativeInfinity)
+            transform.position = CurrentCheckpoint;
     }
 
     private IEnumerator WakeUp()
@@ -104,7 +124,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     {
         if (PointerDown && Grounded.Value && !Splatted.Value)
         {
-            MousePosition = MainCamera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
+            MousePosition = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             Direction = Position - new Vector3(MousePosition.x, MousePosition.y);
             for (int i = 0; i < IndicatorCircles.Length; i++)
                 IndicatorCircles[i].position = Vector3.Lerp(Position, Position - Direction, (i + 1f) / IndicatorCircles.Length);
@@ -117,8 +137,6 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.layer == 3)
-            Willpower++;
         if (collision.gameObject.layer == 6)
         {
             Grounded.Value = true;
