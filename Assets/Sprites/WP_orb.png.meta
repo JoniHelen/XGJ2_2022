@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 9ccda1bd1b637074c82f44453d7c0c22
+guid: 171c77ddf27a5dc41ac14d11000af1f6
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -47,7 +47,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 48
+  spritePixelsToUnits: 24
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -117,7 +117,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Pixilart Sprite Sheet (3)_0
+      name: WP_orb_0
       rect:
         serializedVersion: 2
         x: 0
@@ -131,14 +131,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2b4e4d3c1f8ae604a89c2d92826e1399
-      internalID: 419697305
+      spriteID: 7a604a1a510950d418c1ddab3eda0058
+      internalID: 1030823624
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Pixilart Sprite Sheet (3)_1
+      name: WP_orb_1
       rect:
         serializedVersion: 2
         x: 144
@@ -152,14 +152,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8b1d887566d3645488ae4716ef8d2832
-      internalID: -1191579096
+      spriteID: 4bcf51083ade61346b07a49d5f0bf0d8
+      internalID: -46019972
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Pixilart Sprite Sheet (3)_2
+      name: WP_orb_2
       rect:
         serializedVersion: 2
         x: 288
@@ -173,8 +173,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c7e7225ccfca9324e9298b5c25081cee
-      internalID: -263673148
+      spriteID: 3bfd4fd306e04714ab8b22f96cb8274a
+      internalID: -23549765
       vertices: []
       indices: 
       edges: []
@@ -182,7 +182,7 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: ad203a544e1d92c4080fdd6aa716a1fd
+    spriteID: 08181652d9ea17a43bfe1c88e7de1cb4
     internalID: 0
     vertices: []
     indices: 
@@ -190,9 +190,9 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Pixilart Sprite Sheet (3)_2: -263673148
-      Pixilart Sprite Sheet (3)_0: 419697305
-      Pixilart Sprite Sheet (3)_1: -1191579096
+      WP_orb_2: -23549765
+      WP_orb_0: 1030823624
+      WP_orb_1: -46019972
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
