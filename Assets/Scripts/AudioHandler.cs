@@ -20,6 +20,13 @@ public class AudioHandler : MonoBehaviour
         Checkpoint.OnPlaySound += PlaySound;
     }
 
+    private void OnDestroy()
+    {
+        PlayerController.OnPlaySound -= PlaySound;
+        Floater.OnPlaySound -= PlaySound;
+        Checkpoint.OnPlaySound -= PlaySound;
+    }
+
     private void PlaySound(string name, float pitch, bool reverb)
     {
         AudioSource source = sources.Find(s => !s.isPlaying);

@@ -31,9 +31,11 @@ public class UIManager : MonoBehaviour
 
     Vector3[] worldCorners = new Vector3[4];
 
+    CompositeDisposable disposables = new CompositeDisposable();
+
     private void Awake()
     {
-        Image[] imgs = GetComponentsInChildren<Image>();
+        Image[] imgs = WillpowerMeter.GetComponentsInChildren<Image>();
         for (int i = 0; i < imgs.Length; i++)
             Images.Add(imgs[i], imgs[i].color.a);
 
@@ -59,10 +61,10 @@ public class UIManager : MonoBehaviour
                 CPButton.SetActive(false);
                 WillpowerParticles.Stop();
             }
-        });
+        }).AddTo(disposables);
         PlayerController.CheckpointSubscriber.Subscribe(c =>
         {
-            if (c.x != float.NegativeInfinity)
+            if (c != Vector2.zero)
             {
                 checkpoint.transform.position = c;
                 checkpoint.OnCheckpointMoved();
@@ -70,7 +72,7 @@ public class UIManager : MonoBehaviour
                 CheckpointSystem.transform.position = Camera.main.ScreenToWorldPoint(new(WillpowerMeter.position.x, WillpowerMeter.position.y, -Camera.main.transform.position.z));
                 CheckpointSystem.Play();
             }
-        });
+        }).AddTo(disposables);
         player.transform.ObserveEveryValueChanged(t => t.position).Subscribe(p =>
         {
             WillpowerMeter.GetWorldCorners(worldCorners);
@@ -86,7 +88,12 @@ public class UIManager : MonoBehaviour
                 foreach (var kvp in Images)
                     MainThreadDispatcher.StartEndOfFrameMicroCoroutine(FadeImage(kvp.Key, 0.3f, kvp.Value));
             }
-        });
+        }).AddTo(disposables);
+    }
+
+    private void OnDestroy()
+    {
+        disposables.Dispose();
     }
 
     private bool PointTouchesRect(Vector3[] corners, Vector3 point)

@@ -11,7 +11,7 @@ public class Checkpoint : MonoBehaviour
     private ParticleSystem PopParticles;
     private WaitForSeconds PopWait = new(1.5f);
     // Start is called before the first frame update
-    private void Start()
+    private void Awake()
     {
         rend = GetComponent<SpriteRenderer>();
         PopParticles = GetComponent<ParticleSystem>();

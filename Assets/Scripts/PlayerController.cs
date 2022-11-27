@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UniRx;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CapsuleCollider2D))]
@@ -15,12 +16,12 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     public static event AudioHandler.AudioEventHandler OnPlaySound;
 
-    private readonly ReactiveProperty<bool> Splatted = new(false);
-    private readonly ReactiveProperty<bool> Rising = new(false);
-    private readonly ReactiveProperty<bool> Falling = new(false);
-    private readonly ReactiveProperty<bool> Grounded = new(false);
-    private static readonly ReactiveProperty<float> willpower = new(0);
-    private static readonly ReactiveProperty<Vector2> CurrentCheckpointPosition = new(Vector2.negativeInfinity);
+    private ReactiveProperty<bool> Splatted = new(false);
+    private ReactiveProperty<bool> Rising = new(false);
+    private ReactiveProperty<bool> Falling = new(false);
+    private ReactiveProperty<bool> Grounded = new(false);
+    private static ReactiveProperty<float> willpower = new(0);
+    private static ReactiveProperty<Vector2> CurrentCheckpointPosition = new(Vector2.zero);
 
     private Vector2 MousePosition = Vector2.zero;
     private Vector3 Direction = Vector3.zero;
@@ -46,6 +47,8 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     public static ReactiveProperty<Vector2> CheckpointSubscriber { get => CurrentCheckpointPosition; }
     public float Willpower { get => willpower.Value; set => willpower.Value = value > 10 ? 10 : value; }
     public static ReactiveProperty<float> WillpowerSubscriber { get => willpower; }
+
+    CompositeDisposable disposables = new CompositeDisposable();
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -74,6 +77,11 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         else NoJump = false;
     }
 
+    public void LoadMenu()
+    {
+        SceneManager.LoadScene(0, LoadSceneMode.Single);
+    }
+
     public void SetCheckpoint()
     {
         if (Grounded.Value && Willpower >= 10)
@@ -84,9 +92,9 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         }
     }
     public void GoToCheckpoint() 
-    { 
-        if (CurrentCheckpoint.x != float.NegativeInfinity)
-            transform.position = CurrentCheckpoint;
+    {
+        rb.velocity = Vector2.zero;
+        rb.position = CurrentCheckpoint;
     }
 
     private IEnumerator WakeUp()
@@ -98,6 +106,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     private void Awake()
     {
+        Cursor.lockState = CursorLockMode.Confined;
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         rb.ObserveEveryValueChanged(x => x.velocity.y).Subscribe(vel => {
@@ -114,7 +123,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
             else {
                 Falling.Value = Rising.Value = false;
             }
-        });
+        }).AddTo(disposables);
         rend = GetComponent<SpriteRenderer>();
         Capsule = GetComponent<CapsuleCollider2D>();
         for (int i = 0; i < IndicatorCircles.Length; i++) {
@@ -124,10 +133,15 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         Grounded.Subscribe(g => { animator.SetBool("Grounded", g);
             if (Splatted.Value)
                 StartCoroutine(WakeUp());
-        });
-        Splatted.Subscribe(s => animator.SetBool("Splatted", s));
-        Rising.Subscribe(r => animator.SetBool("Rising", r));
-        Falling.Subscribe(f => animator.SetBool("Falling", f));
+        }).AddTo(disposables);
+        Splatted.Subscribe(s => animator.SetBool("Splatted", s)).AddTo(disposables);
+        Rising.Subscribe(r => animator.SetBool("Rising", r)).AddTo(disposables);
+        Falling.Subscribe(f => animator.SetBool("Falling", f)).AddTo(disposables);
+    }
+
+    private void OnDestroy()
+    {
+        disposables.Dispose();
     }
 
     private void Update()
