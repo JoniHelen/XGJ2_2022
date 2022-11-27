@@ -7,8 +7,12 @@ public class Floater : MonoBehaviour
     private Vector2 InitialPosition;
     [SerializeField] float FloatHeight;
     [SerializeField] float FloatSpeed;
+    [SerializeField] ParticleSystem CollectSystem;
 
     private bool collected = false;
+
+    public static event AudioHandler.AudioEventHandler OnPlaySound;
+
     private void Awake()
     {
         InitialPosition = transform.position;
@@ -20,6 +24,8 @@ public class Floater : MonoBehaviour
         {
             collected = true;
             player.Willpower++;
+            OnPlaySound?.Invoke("Blip_2");
+            Instantiate(CollectSystem, transform.position, Quaternion.identity);
             Destroy(gameObject);
         }
     }

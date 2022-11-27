@@ -5,6 +5,8 @@ using UniRx;
 
 public class Checkpoint : MonoBehaviour
 {
+    public static event AudioHandler.AudioEventHandler OnPlaySound;
+
     private SpriteRenderer rend;
     private ParticleSystem PopParticles;
     private WaitForSeconds PopWait = new(1.5f);
@@ -18,6 +20,7 @@ public class Checkpoint : MonoBehaviour
     public void OnCheckpointMoved()
     {
         rend.enabled = false;
+        transform.GetChild(0).gameObject.SetActive(false);
         StartCoroutine(PopIn());
     }
 
@@ -25,6 +28,8 @@ public class Checkpoint : MonoBehaviour
     {
         yield return PopWait;
         rend.enabled = true;
+        transform.GetChild(0).gameObject.SetActive(true);
+        OnPlaySound?.Invoke("CP_2", reverb: true);
         PopParticles.Play();
     }
 

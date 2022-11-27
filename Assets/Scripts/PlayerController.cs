@@ -13,6 +13,8 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     private bool NoJump = false;
     private bool PointerDown = false;
 
+    public static event AudioHandler.AudioEventHandler OnPlaySound;
+
     private readonly ReactiveProperty<bool> Splatted = new(false);
     private readonly ReactiveProperty<bool> Rising = new(false);
     private readonly ReactiveProperty<bool> Falling = new(false);
@@ -42,7 +44,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     private Vector2 CurrentCheckpoint { get => CurrentCheckpointPosition.Value; set => CurrentCheckpointPosition.Value = value; }
     public static ReactiveProperty<Vector2> CheckpointSubscriber { get => CurrentCheckpointPosition; }
-    public float Willpower { get => willpower.Value; set => willpower.Value = value; }
+    public float Willpower { get => willpower.Value; set => willpower.Value = value > 10 ? 10 : value; }
     public static ReactiveProperty<float> WillpowerSubscriber { get => willpower; }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -51,6 +53,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         if (Grounded.Value && !Splatted.Value)
         {
             animator.SetBool("Crouching", true);
+            OnPlaySound?.Invoke("Blip_1");
             for (int i = 0; i < IndicatorCircles.Length; i++)
                 IndicatorCircles[i].gameObject.SetActive(true);
         }
@@ -64,7 +67,10 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         for (int i = 0; i < IndicatorCircles.Length; i++)
             IndicatorCircles[i].gameObject.SetActive(false);
         if (Grounded.Value && !NoJump)
+        {
             rb.AddForce(new Vector3(Direction.x * JumpStrength, Direction.y * JumpStrength * 1.5f), ForceMode2D.Impulse);
+            OnPlaySound?.Invoke("Jump_2", Direction.magnitude / 10);
+        }
         else NoJump = false;
     }
 
@@ -74,6 +80,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         {
             Willpower -= 10;
             CurrentCheckpoint = transform.position;
+            OnPlaySound?.Invoke("CP_1", reverb: true);
         }
     }
     public void GoToCheckpoint() 
@@ -86,7 +93,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     {
         yield return WakeupTime;
         Splatted.Value = false;
-        animator.SetTrigger("Get Up");
+        animator.SetBool("Get Up", true);
     }
 
     private void Awake()
@@ -114,7 +121,10 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
             IndicatorCircles[i] = Instantiate(CirclePrefab);
             IndicatorCircles[i].localScale = Vector3.one * (CircleMinSize + (CircleMaxSize - CircleMinSize) * (i / (float)IndicatorCircles.Length));
         }
-        Grounded.Subscribe(g => animator.SetBool("Grounded", g));
+        Grounded.Subscribe(g => { animator.SetBool("Grounded", g);
+            if (Splatted.Value)
+                StartCoroutine(WakeUp());
+        });
         Splatted.Subscribe(s => animator.SetBool("Splatted", s));
         Rising.Subscribe(r => animator.SetBool("Rising", r));
         Falling.Subscribe(f => animator.SetBool("Falling", f));
@@ -141,7 +151,11 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         {
             Grounded.Value = true;
             if (Splatted.Value)
-                StartCoroutine(WakeUp());
+            {
+                OnPlaySound?.Invoke("Hit_1");
+            }
+            else
+                OnPlaySound?.Invoke("Hit_4");
         }
     }
 
@@ -153,7 +167,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.layer == 6)
+        if (collision.gameObject.layer == 6 && !Grounded.Value)
         {
             Vector3 point = transform.InverseTransformPoint(collision.GetContact(0).point) - new Vector3(Capsule.offset.x, Capsule.offset.y);
             float angle = 180f / Mathf.PI * Mathf.Atan2(Vector3.Dot(Vector3.Cross(Vector3.right, point), Vector3.forward), Vector3.Dot(Vector3.right, point));
@@ -162,25 +176,25 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
                 // Collision from right
                 animator.SetTrigger("Side Splat");
                 Splatted.Value = true;
-                if (!(Falling.Value || Rising.Value) && Grounded.Value)
-                    StartCoroutine(WakeUp());
+                OnPlaySound?.Invoke("Hit_3");
+                animator.SetBool("Get Up", false);
             }
             else if (angle > 45f && angle < 135f)
             {
                 // Collision from top
                 animator.SetTrigger("Top Splat");
                 Splatted.Value = true;
-                if (!(Falling.Value || Rising.Value) && Grounded.Value)
-                    StartCoroutine(WakeUp());
+                OnPlaySound?.Invoke("Hit_2");
+                animator.SetBool("Get Up", false);
             }
             else if (angle > 135f || angle < -135f)
             {
                 // Collision from left
                 animator.SetTrigger("Side Splat");
                 Splatted.Value = true;
+                OnPlaySound?.Invoke("Hit_3");
                 rend.flipX = true;
-                if (!(Falling.Value || Rising.Value) && Grounded.Value)
-                    StartCoroutine(WakeUp());
+                animator.SetBool("Get Up", false);
             }
         }
     }
