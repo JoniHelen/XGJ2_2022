@@ -142,6 +142,8 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     private void OnDestroy()
     {
         disposables.Dispose();
+        Willpower = 0;
+        CurrentChecpoint = new(0, 0);
     }
 
     private void Update()
