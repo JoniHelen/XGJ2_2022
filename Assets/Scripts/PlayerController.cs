@@ -31,6 +31,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     private Animator animator;
     private SpriteRenderer rend;
     private CapsuleCollider2D Capsule;
+    private ParticleSystem MoveSystem;
 
     private WaitForSeconds WakeupTime = new(1f);
 
@@ -40,6 +41,8 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     [SerializeField] float TurnThreshold;
     [SerializeField] float CircleMaxSize;
     [SerializeField] float CircleMinSize;
+
+    public static event System.Action OnReturn;
 
     private Vector3 Position { get => transform.position + new Vector3(Capsule.offset.x, Capsule.offset.y); }
 
@@ -79,7 +82,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
 
     public void LoadMenu()
     {
-        SceneManager.LoadScene(0, LoadSceneMode.Single);
+        SceneManager.LoadScene(0);
     }
 
     public void SetCheckpoint()
@@ -93,8 +96,18 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
     }
     public void GoToCheckpoint() 
     {
+        rb.simulated = false;
+        Capsule.enabled = false;
         rb.velocity = Vector2.zero;
+        MoveSystem.Play();
+    }
+
+    private void OnParticleSystemStopped()
+    {
+        Capsule.enabled = true;
+        rb.simulated = true;
         rb.position = CurrentCheckpoint;
+        OnReturn?.Invoke();
     }
 
     private IEnumerator WakeUp()
@@ -137,13 +150,14 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
         Splatted.Subscribe(s => animator.SetBool("Splatted", s)).AddTo(disposables);
         Rising.Subscribe(r => animator.SetBool("Rising", r)).AddTo(disposables);
         Falling.Subscribe(f => animator.SetBool("Falling", f)).AddTo(disposables);
+        MoveSystem = GetComponent<ParticleSystem>();
     }
 
     private void OnDestroy()
     {
         disposables.Dispose();
         Willpower = 0;
-        CurrentChecpoint = new(0, 0);
+        CurrentCheckpoint = new(0, 0);
     }
 
     private void Update()

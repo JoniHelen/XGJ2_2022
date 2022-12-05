@@ -68,8 +68,8 @@ public class UIManager : MonoBehaviour
             {
                 checkpoint.transform.position = c;
                 checkpoint.OnCheckpointMoved();
-                main.startSpeed = -Vector3.Distance(CheckpointSystem.transform.position, checkpoint.transform.position) + 40;
                 CheckpointSystem.transform.position = Camera.main.ScreenToWorldPoint(new(WillpowerMeter.position.x, WillpowerMeter.position.y, -Camera.main.transform.position.z));
+                main.startSpeed = -Vector3.Distance(CheckpointSystem.transform.position, checkpoint.transform.position) + 40;
                 CheckpointSystem.Play();
             }
         }).AddTo(disposables);

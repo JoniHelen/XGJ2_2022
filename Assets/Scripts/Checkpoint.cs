@@ -15,6 +15,7 @@ public class Checkpoint : MonoBehaviour
     {
         rend = GetComponent<SpriteRenderer>();
         PopParticles = GetComponent<ParticleSystem>();
+        PlayerController.OnReturn += () => PopParticles.Play();
     }
 
     public void OnCheckpointMoved()
