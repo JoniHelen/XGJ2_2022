@@ -10,12 +10,19 @@ public class Checkpoint : MonoBehaviour
     private SpriteRenderer rend;
     private ParticleSystem PopParticles;
     private WaitForSeconds PopWait = new(1.5f);
+    private System.Action particles;
     // Start is called before the first frame update
     private void Awake()
     {
+        particles = () => PopParticles.Play();
         rend = GetComponent<SpriteRenderer>();
         PopParticles = GetComponent<ParticleSystem>();
-        PlayerController.OnReturn += () => PopParticles.Play();
+        PlayerController.OnReturn += particles;
+    }
+
+    private void OnDestroy()
+    {
+        PlayerController.OnReturn -= particles;
     }
 
     public void OnCheckpointMoved()
@@ -32,10 +39,5 @@ public class Checkpoint : MonoBehaviour
         transform.GetChild(0).gameObject.SetActive(true);
         OnPlaySound?.Invoke("CP_2", reverb: true);
         PopParticles.Play();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
     }
 }

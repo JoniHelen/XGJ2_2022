@@ -18,6 +18,7 @@ public class AudioHandler : MonoBehaviour
         PlayerController.OnPlaySound += PlaySound;
         Floater.OnPlaySound += PlaySound;
         Checkpoint.OnPlaySound += PlaySound;
+        Crown.OnPlaySound += PlaySound;
     }
 
     private void OnDestroy()
@@ -25,6 +26,7 @@ public class AudioHandler : MonoBehaviour
         PlayerController.OnPlaySound -= PlaySound;
         Floater.OnPlaySound -= PlaySound;
         Checkpoint.OnPlaySound -= PlaySound;
+        Crown.OnPlaySound -= PlaySound;
     }
 
     private void PlaySound(string name, float pitch, bool reverb)
