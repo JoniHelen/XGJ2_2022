@@ -74,7 +74,7 @@ public class PlayerController : MonoBehaviour, IPointerDownHandler, IPointerUpHa
             IndicatorCircles[i].gameObject.SetActive(false);
         if (Grounded.Value && !NoJump)
         {
-            rb.AddForce(new Vector3(Direction.x * JumpStrength, Direction.y * JumpStrength * 1.5f), ForceMode2D.Impulse);
+            rb.AddForce(new Vector2(Direction.x * JumpStrength, Direction.y * JumpStrength * 1.5f), ForceMode2D.Impulse);
             OnPlaySound?.Invoke("Jump_2", Direction.magnitude / 10);
         }
         else NoJump = false;
